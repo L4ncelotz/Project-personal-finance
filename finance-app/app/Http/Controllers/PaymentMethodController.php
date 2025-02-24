@@ -5,15 +5,16 @@ namespace App\Http\Controllers;
 use App\Models\PaymentMethod;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class PaymentMethodController extends Controller
 {
+    use AuthorizesRequests;
+
     public function index()
     {
         return Inertia::render('PaymentMethods/Index', [
-            'paymentMethods' => PaymentMethod::where('user_id', auth()->id())
-                ->orWhereNull('user_id')
-                ->get()
+            'paymentMethods' => PaymentMethod::where('user_id', auth()->id())->get()
         ]);
     }
 
@@ -21,39 +22,39 @@ class PaymentMethodController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'description' => 'nullable|string|max:255',
         ]);
 
         $validated['user_id'] = auth()->id();
 
         PaymentMethod::create($validated);
 
-        return redirect()->back()
-            ->with('message', 'Payment method created successfully.');
+        return redirect()->back();
     }
 
     public function update(Request $request, PaymentMethod $paymentMethod)
     {
+        $this->authorize('update', $paymentMethod);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'description' => 'nullable|string|max:255',
         ]);
 
         $paymentMethod->update($validated);
 
-        return redirect()->back()
-            ->with('message', 'Payment method updated successfully.');
+        return redirect()->back();
     }
 
     public function destroy(PaymentMethod $paymentMethod)
     {
-        if ($paymentMethod->user_id === auth()->id()) {
-            $paymentMethod->delete();
-            return redirect()->back()
-                ->with('message', 'Payment method deleted successfully.');
+        $this->authorize('delete', $paymentMethod);
+
+        // Check if payment method is used in any transactions
+        if ($paymentMethod->transactions()->exists()) {
+            return redirect()->back()->with('error', 'Cannot delete payment method that has transactions.');
         }
 
-        return redirect()->back()
-            ->with('error', 'You cannot delete this payment method.');
+        $paymentMethod->delete();
+
+        return redirect()->back();
     }
 }

@@ -7,7 +7,8 @@ import {
     Settings,
     Menu,
     X,
-    ChevronDown
+    ChevronDown,
+    Calculator
 } from 'lucide-react';
 
 export default function MainNav({ user }) {
@@ -18,6 +19,7 @@ export default function MainNav({ user }) {
         { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
         { name: 'Transactions', href: '/transactions', icon: CreditCard },
         { name: 'Categories', href: '/categories', icon: PiggyBank },
+        { name: 'Budget Plans', href: '/budget-plans', icon: Calculator },
         { name: 'Payment Methods', href: '/payment-methods', icon: Settings },
     ];
 

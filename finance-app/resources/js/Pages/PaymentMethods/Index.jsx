@@ -2,16 +2,74 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head } from '@inertiajs/react';
 import { useState } from 'react';
 import { router } from '@inertiajs/react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card";
+import { Button } from "@/Components/ui/button";
+import { Input } from "@/Components/ui/input";
+import { Pencil, Trash2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/Components/ui/dialog";
+import { Label } from "@/Components/ui/label";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/Components/ui/alert-dialog";
 
-export default function Index({ paymentMethods = [] }) {
+export default function Index({ paymentMethods }) {
     const [formData, setFormData] = useState({
         name: '',
-        type: 'cash'
     });
+
+    const [editingPaymentMethod, setEditingPaymentMethod] = useState(null);
+    const [editForm, setEditForm] = useState({
+        name: '',
+    });
+
+    const [paymentMethodToDelete, setPaymentMethodToDelete] = useState(null);
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
     const handleSubmit = (e) => {
         e.preventDefault();
         router.post('/payment-methods', formData);
+        setFormData({ name: '' });
+    };
+
+    const handleEdit = (paymentMethod) => {
+        setEditingPaymentMethod(paymentMethod);
+        setEditForm({
+            name: paymentMethod.name,
+        });
+    };
+
+    const handleUpdate = (e) => {
+        e.preventDefault();
+        router.put(route('payment-methods.update', editingPaymentMethod.id), editForm, {
+            preserveScroll: true,
+            onSuccess: () => {
+                setEditingPaymentMethod(null);
+            },
+        });
+    };
+
+    const handleDelete = (paymentMethod) => {
+        setPaymentMethodToDelete(paymentMethod);
+        setIsDeleteDialogOpen(true);
+    };
+
+    const confirmDelete = () => {
+        if (paymentMethodToDelete) {
+            router.delete(route('payment-methods.destroy', paymentMethodToDelete.id), {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setIsDeleteDialogOpen(false);
+                    setPaymentMethodToDelete(null);
+                },
+            });
+        }
     };
 
     return (
@@ -21,68 +79,106 @@ export default function Index({ paymentMethods = [] }) {
             <Head title="Payment Methods" />
 
             <div className="py-12">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                    {/* Form for adding new payment method */}
-                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 mb-6">
-                        <form onSubmit={handleSubmit}>
-                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                                <input
-                                    type="text"
-                                    placeholder="Payment Method Name"
-                                    value={formData.name}
-                                    onChange={(e) => setFormData({...formData, name: e.target.value})}
-                                    className="rounded-md border-gray-300"
-                                />
-                                <select
-                                    value={formData.type}
-                                    onChange={(e) => setFormData({...formData, type: e.target.value})}
-                                    className="rounded-md border-gray-300"
-                                >
-                                    <option value="cash">Cash</option>
-                                    <option value="bank">Bank Account</option>
-                                    <option value="credit">Credit Card</option>
-                                    <option value="debit">Debit Card</option>
-                                </select>
-                                <button
-                                    type="submit"
-                                    className="bg-blue-500 text-white px-4 py-2 rounded-md"
-                                >
-                                    Add Payment Method
-                                </button>
-                            </div>
-                        </form>
-                    </div>
+                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Add New Payment Method</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <form onSubmit={handleSubmit} className="space-y-4">
+                                <div className="flex gap-4">
+                                    <Input
+                                        type="text"
+                                        placeholder="Payment Method Name"
+                                        value={formData.name}
+                                        onChange={(e) => setFormData({ name: e.target.value })}
+                                    />
+                                    <Button type="submit">
+                                        Add Payment Method
+                                    </Button>
+                                </div>
+                            </form>
+                        </CardContent>
+                    </Card>
 
-                    {/* Payment Methods List */}
-                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                        <table className="min-w-full">
-                            <thead className="bg-gray-50">
-                                <tr>
-                                    <th className="px-6 py-3 text-left">Name</th>
-                                    <th className="px-6 py-3 text-left">Type</th>
-                                    <th className="px-6 py-3 text-left">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {paymentMethods.map((method) => (
-                                    <tr key={method.id}>
-                                        <td className="px-6 py-4">{method.name}</td>
-                                        <td className="px-6 py-4">{method.type}</td>
-                                        <td className="px-6 py-4">
-                                            <button
-                                                onClick={() => router.delete(`/payment-methods/${method.id}`)}
-                                                className="text-red-600 hover:text-red-800"
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {paymentMethods.map((paymentMethod) => (
+                            <Card key={paymentMethod.id}>
+                                <CardContent className="p-4">
+                                    <div className="flex items-center justify-between">
+                                        <span className="font-medium">{paymentMethod.name}</span>
+                                        <div className="flex items-center gap-2">
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => handleEdit(paymentMethod)}
                                             >
-                                                Delete
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                                <Pencil className="w-4 h-4" />
+                                            </Button>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => handleDelete(paymentMethod)}
+                                                className="text-red-600 hover:text-red-700"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        ))}
                     </div>
                 </div>
             </div>
+
+            {/* Edit Payment Method Dialog */}
+            <Dialog open={!!editingPaymentMethod} onOpenChange={() => setEditingPaymentMethod(null)}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Edit Payment Method</DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={handleUpdate} className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="name">Name</Label>
+                            <Input
+                                id="name"
+                                value={editForm.name}
+                                onChange={(e) => setEditForm({ name: e.target.value })}
+                            />
+                        </div>
+                        <div className="flex justify-end gap-2">
+                            <Button type="button" variant="outline" onClick={() => setEditingPaymentMethod(null)}>
+                                Cancel
+                            </Button>
+                            <Button type="submit">
+                                Save Changes
+                            </Button>
+                        </div>
+                    </form>
+                </DialogContent>
+            </Dialog>
+
+            {/* Delete Confirmation Dialog */}
+            <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete the payment method.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction 
+                            onClick={confirmDelete}
+                            className="bg-red-600 hover:bg-red-700"
+                        >
+                            Delete
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </AuthenticatedLayout>
     );
 }

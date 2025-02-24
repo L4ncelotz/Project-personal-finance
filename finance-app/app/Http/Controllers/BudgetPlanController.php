@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\BudgetPlan;
+use App\Models\Category;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -10,12 +11,24 @@ class BudgetPlanController extends Controller
 {
     public function index()
     {
-        $budgetPlans = BudgetPlan::with('category')
-            ->where('user_id', auth()->id())
-            ->get();
+        $userId = auth()->id();
 
         return Inertia::render('BudgetPlans/Index', [
-            'budgetPlans' => $budgetPlans
+            'budgetPlans' => BudgetPlan::with(['category', 'subCategory'])
+                ->where('user_id', $userId)
+                ->get()
+                ->map(function ($plan) {
+                    return [
+                        ...$plan->toArray(),
+                        'actual_spent' => $plan->actual_spent,
+                        'remaining_budget' => $plan->remaining_budget,
+                        'progress_percentage' => $plan->progress_percentage,
+                    ];
+                }),
+            'categories' => Category::with('subCategories')
+                ->where('user_id', $userId)
+                ->where('type', 'expense')  // เฉพาะประเภทรายจ่าย
+                ->get(),
         ]);
     }
 
