@@ -9,7 +9,7 @@
       "src": "package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "finance-app/public/build"
+        "outputDirectory": "finance-app/public/build"
       }
     }
   ],
