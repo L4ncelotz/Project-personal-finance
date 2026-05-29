@@ -2,6 +2,6 @@
   "name": "project-root",
   "version": "1.0.0",
   "scripts": {
-    "build": "npm install --prefix finance-app && npm run build --prefix finance-app"
+    "build": "curl -sS https://getcomposer.org/installer | php && php composer.phar install --prefix finance-app --no-dev --prefer-dist && npm install --prefix finance-app && npm run build --prefix finance-app"
   }
 }
