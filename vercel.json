@@ -6,12 +6,10 @@
       "use": "vercel-php@0.7.1"
     },
     {
-      "src": "finance-app/package.json",
+      "src": "package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "finance-app/public/build",
-        "installCommand": "npm install --prefix finance-app",
-        "buildCommand": "npm run build --prefix finance-app"
+        "distDir": "finance-app/public/build"
       }
     }
   ],
