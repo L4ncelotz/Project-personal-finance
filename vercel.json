@@ -1,6 +1,5 @@
 {
   "version": 2,
-  "framework": null,
   "builds": [
     {
       "src": "finance-app/public/index.php",
@@ -10,7 +9,9 @@
       "src": "finance-app/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "finance-app/public/build"
+        "distDir": "finance-app/public/build",
+        "installCommand": "npm install --prefix finance-app",
+        "buildCommand": "npm run build --prefix finance-app"
       }
     }
   ],
