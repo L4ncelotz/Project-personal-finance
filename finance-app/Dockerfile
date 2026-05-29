@@ -36,7 +36,7 @@ COPY --from=frontend-builder /app/public/build ./public/build
 RUN composer install --no-dev --optimize-autoloader
 
 # ตั้งค่าสิทธิ์โฟลเดอร์ให้ Laravel เขียนไฟล์ Log และ Cache ได้
-RUN chown -JW www-data:www-data storage bootstrap/cache
+RUN chown -R www-data:www-data storage bootstrap/cache
 
 # ปรับแต่ง Apache ให้ชี้ไปที่โฟลเดอร์ public ของ Laravel
 ENV APACHE_DOCUMENT_ROOT /var/webapps/public
